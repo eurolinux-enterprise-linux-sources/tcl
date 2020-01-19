@@ -5,7 +5,7 @@
 Summary: Tool Command Language, pronounced tickle
 Name: tcl
 Version: %{vers}
-Release: 4%{?dist}
+Release: 8%{?dist}
 Epoch: 1
 License: TCL
 Group: Development/Languages
@@ -19,6 +19,7 @@ Provides: tcl-tcldict = %{vers}
 Patch0: tcl-8.5.1-autopath.patch
 Patch1: tcl-8.5.10-conf.patch
 Patch2: tcl-8.5.12-hidden.patch
+Patch3: tcl-8.5.13-notifier-thread-fork-fix.patch
 
 %if %sdt
 BuildRequires: systemtap-sdt-devel
@@ -56,15 +57,16 @@ chmod -x generic/tclThreadAlloc.c
 %patch0 -p1 -b .autopath
 %patch1 -p1 -b .conf
 %patch2 -p1 -b .hidden
+%patch3 -p1 -b .notifier-thread-fork-fix
 
 %build
 pushd unix
-autoconf
+autoconf -f
 %configure \
 %if %sdt
 --enable-dtrace \
 %endif
---disable-threads \
+--enable-threads \
 --enable-symbols \
 --enable-shared
 
@@ -137,6 +139,24 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/%{name}%{majorver}/tclAppInit.c
 
 %changelog
+* Wed Jul 29 2015 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.5.13-8
+- Dropped 'configure' patch hunks, because 'configure' is re-generated
+  Related: rhbz#1247555
+
+* Wed Jul 29 2015 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.5.13-7
+- Forced autoconf to rebuild its files
+  Related: rhbz#1247555
+
+* Tue Jul 28 2015 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.5.13-6
+- Rebuilt due to wrong tcl_pkgPath on s390x and ppc64le
+  Resolves: rhbz#1247555
+
+* Mon Jul  6 2015 Jaroslav Škarvada <jskarvad@redhat.com> - 1:8.5.13-5
+- Fixed fork, enabled threading (by notifier-thread-fork-fix patch)
+  Resolves: rhbz#869315
+- Rebuild to fix systemtap on aarch64
+  Resolves: rhbz#1238479
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1:8.5.13-4
 - Mass rebuild 2014-01-24
 
